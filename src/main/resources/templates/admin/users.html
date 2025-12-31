@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理 - 猫宿舍管理后台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        
+        /* 顶部导航 - 灰色系 */
+        .header {
+            background: #4b5563;
+            color: white;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 24px; font-weight: bold; }
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            transition: background 0.3s;
+        }
+        .nav-menu a:hover {
+            background: #374151;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4b5563;
+        }
+        
+        /* 搜索栏 */
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #d1d5db;
+            font-size: 14px;
+        }
+        .search-bar button {
+            padding: 10px 30px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .search-bar button:hover {
+            background: #4b5563;
+        }
+        
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            margin-right: 5px;
+        }
+        .btn-primary { background: #6b7280; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn:hover { opacity: 0.8; }
+        
+        /* 状态标签 */
+        .badge {
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        .badge-admin { background: #dbeafe; color: #1e40af; }
+        .badge-user { background: #fef3c7; color: #92400e; }
+        .badge-approved { background: #d1fae5; color: #065f46; }
+        .badge-pending { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">管理员首页</div>
+        <div class="nav-menu">
+            <a href="/admin/dashboard">管理员首页</a>
+            <a href="/admin/orders">订单管理</a>
+            <a href="/admin/cats">在舍猫</a>
+            <a href="/admin/users">用户管理</a>
+        </div>
+        <div>
+            <span th:text="${admin.nickname}" style="color: white;">管理员</span>
+            <a href="/admin/logout" style="color: white; text-decoration: none; margin-left: 15px;">退出</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>用户管理</h2>
+            
+            <!-- 搜索栏 -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="输入用户名或昵称搜索...">
+                <button onclick="searchUser()">搜索</button>
+                <button onclick="location.href='/admin/users'" style="background: #9ca3af;">显示全部</button>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>用户ID</th>
+                        <th>用户名</th>
+                        <th>昵称</th>
+                        <th>用户类型</th>
+                        <th>审核状态</th>
+                        <th>注册时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="user : ${users}">
+                        <td th:text="${user.id}">1</td>
+                        <td th:text="${user.username}">用户名</td>
+                        <td th:text="${user.nickname}">昵称</td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${user.isAdmin == 1 ? 'badge-admin' : 'badge-user'}"
+                                  th:text="${user.isAdmin == 1 ? '管理员' : '普通用户'}">
+                                普通用户
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${user.isApproved == 1 ? 'badge-approved' : 'badge-pending'}"
+                                  th:text="${user.isApproved == 1 ? '已审核' : '待审核'}">
+                                已审核
+                            </span>
+                        </td>
+                        <td th:text="${user.createTime != null ? #dates.format(user.createTime, 'yyyy-MM-dd HH:mm') : '未知'}">时间</td>
+                        <td>
+                            <button class="btn btn-primary" 
+                                    th:onclick="'viewUser(' + ${user.id} + ')'">查看</button>
+                            <button class="btn btn-success" 
+                                    th:if="${user.isAdmin == 1 && user.isApproved == 0}"
+                                    th:onclick="'approveUser(' + ${user.id} + ')'">审核通过</button>
+                            <button class="btn btn-danger" 
+                                    th:onclick="'deleteUser(' + ${user.id} + ')'">删除</button>
+                        </td>
+                    </tr>
+                    <tr th:if="${users.isEmpty()}">
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
+                            暂无用户数据
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 搜索用户
+        function searchUser() {
+            const keyword = document.getElementById('searchInput').value.trim();
+            if (!keyword) {
+                alert('请输入搜索关键词');
+                return;
+            }
+            // 简单的前端过滤
+            const rows = document.querySelectorAll('tbody tr');
+            let hasResult = false;
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(keyword.toLowerCase())) {
+                    row.style.display = '';
+                    hasResult = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            if (!hasResult) {
+                alert('没有找到匹配的用户');
+            }
+        }
+        
+        // 查看用户详情
+        function viewUser(userId) {
+            alert('查看用户详情功能开发中...\n用户ID: ' + userId);
+        }
+        
+        // 审核管理员申请
+        function approveUser(userId) {
+            if (confirm('确认通过该管理员申请？')) {
+                fetch('/admin/approve-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'userId=' + userId + '&approve=1'
+                }).then(res => res.text()).then(data => {
+                    if (data.startsWith('success:')) {
+                        alert(data.split(':')[1]);
+                        location.reload();
+                    } else {
+                        alert(data.split(':')[1]);
+                    }
+                }).catch(err => {
+                    alert('操作失败，请重试');
+                });
+            }
+        }
+        
+        // 删除用户
+        function deleteUser(userId) {
+            if (confirm('确认删除该用户？此操作不可恢复！')) {
+                if (confirm('再次确认：用户将从数据库中彻底删除！')) {
+                    fetch('/admin/delete-user', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'userId=' + userId
+                    }).then(res => res.text()).then(data => {
+                        if (data.startsWith('success:')) {
+                            alert(data.split(':')[1]);
+                            location.reload();
+                        } else {
+                            alert(data.split(':')[1]);
+                        }
+                    }).catch(err => {
+                        alert('删除失败，请重试');
+                    });
+                }
+            }
+        }
+        
+        // 回车搜索
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchUser();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>在舍猫管理 - 猫宿舍</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f3f4f6; }
+        
+        /* 顶部导航 - 灰色系 */
+        .header {
+            background: #4b5563;
+            color: white;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #374151;
+        }
+        .logo { font-size: 24px; font-weight: bold; }
+        .nav-menu { display: flex; gap: 20px; }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            transition: background 0.3s;
+            border: 1px solid transparent;
+        }
+        .nav-menu a:hover {
+            background: #374151;
+            border-color: #6b7280;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .section {
+            background: white;
+            padding: 30px;
+            border: 1px solid #d1d5db;
+        }
+        .section h2 {
+            color: #374151;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #6b7280;
+            padding-bottom: 10px;
+        }
+        
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            font-size: 16px;
+        }
+        .search-bar button {
+            padding: 12px 30px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .search-bar button:hover { background: #4b5563; }
+        
+        .cat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .cat-card {
+            background: white;
+            border: 2px solid #d1d5db;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .cat-card:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-color: #6b7280;
+        }
+        .cat-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 15px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+        }
+        .cat-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        .cat-detail {
+            color: #666;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+        .cat-detail strong {
+            color: #333;
+            display: inline-block;
+            width: 80px;
+        }
+        .mi-code {
+            background: #6b7280;
+            color: white;
+            padding: 5px 15px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">管理员首页</div>
+        <div class="nav-menu">
+            <a href="/admin/dashboard">管理员首页</a>
+            <a href="/admin/orders">订单管理</a>
+            <a href="/admin/cats">在舍猫</a>
+            <a href="/admin/users">用户管理</a>
+        </div>
+        <div>
+            <span th:text="${admin.nickname}" style="color: white;">管理员</span>
+            <a href="/admin/logout" style="color: white; text-decoration: none; margin-left: 15px;">退出</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>在舍猫咪管理</h2>
+            
+            <div class="search-bar">
+                <input type="text" id="nameInput" placeholder="输入猫咪名字搜索..." 
+                       th:value="${searchName}" />
+                <button onclick="searchByName()">按名字搜索</button>
+                <input type="text" id="miCodeInput" placeholder="输入咪码搜索..." 
+                       th:value="${searchMiCode}" />
+                <button onclick="searchCat()">按咪码搜索</button>
+                <button onclick="location.href='/admin/cats'" style="background: #9ca3af;">显示全部</button>
+            </div>
+
+            <div class="cat-grid" th:if="${!cats.isEmpty()}">
+                <div class="cat-card" th:each="cat, iterStat : ${cats}">
+                    <!-- 猫咪图片 -->
+                    <img th:src="${cat.image != null && !cat.image.isEmpty() ? cat.image : 'https://via.placeholder.com/300x200?text=Cat'}" 
+                         class="cat-image" alt="猫咪图片" />
+                    
+                    <!-- 猫咪视频 -->
+                    <video class="cat-image" controls style="margin-top: 10px;">
+                        <source th:src="@{'/videos/video' + (${iterStat.index} % 3 + 1) + '.mp4'}" type="video/mp4">
+                        您的浏览器不支持视频播放
+                    </video>
+                    
+                    <div class="cat-info">
+                        <h3 th:text="${cat.catName}">猫咪名字</h3>
+                        <div class="cat-detail">
+                            <div><strong>品种:</strong> <span th:text="${cat.breed}">品种</span></div>
+                            <div><strong>体重:</strong> <span th:text="${cat.weight} + ' kg'">体重</span></div>
+                            <div><strong>年龄:</strong> <span th:text="${cat.age} + ' 个月'">年龄</span></div>
+                            <div><strong>咪码:</strong> <span class="mi-code" th:text="${cat.miCode}">咪码</span></div>
+                        </div>
+                        <div class="cat-detail" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                            <div th:if="${cat.remarks}">
+                                <strong>备注:</strong> <span th:text="${cat.remarks}">备注</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="empty-state" th:if="${cats.isEmpty()}">
+                <h3>暂无在舍猫咪</h3>
+                <p>当前没有正在寄养的猫咪</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 按名字搜索
+        function searchByName() {
+            const name = document.getElementById('nameInput').value;
+            if (name) {
+                location.href = '/admin/cats?name=' + encodeURIComponent(name);
+            } else {
+                alert('请输入猫咪名字');
+            }
+        }
+        
+        // 按咪码搜索
+        function searchCat() {
+            const miCode = document.getElementById('miCodeInput').value;
+            if (miCode) {
+                location.href = '/admin/cats?miCode=' + encodeURIComponent(miCode);
+            } else {
+                alert('请输入咪码');
+            }
+        }
+        
+        // 支持回车搜索
+        document.getElementById('nameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchByName();
+            }
+        });
+        
+        document.getElementById('miCodeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchCat();
+            }
+        });
+    </script>
+</body>
+</html>

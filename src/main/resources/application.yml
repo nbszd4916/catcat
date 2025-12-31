@@ -1,0 +1,35 @@
+spring:
+  # 数据库配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/cat_dorm?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root  # 替换为你的MySQL用户名
+    password: 123456 # 替换为你的MySQL密码
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # JPA配置（自动建表）
+  jpa:
+    hibernate:
+      ddl-auto: update  # 首次运行用create，后续改update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  # Thymeleaf配置
+  thymeleaf:
+    cache: false  # 开发时关闭缓存，修改页面无需重启
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB  # 单个文件最大大小
+      max-request-size: 10MB  # 整个请求最大大小
+
+# 服务器配置
+server:
+  port: 8080  # 访问端口：http://localhost:8080
+  servlet:
+    context-path: /
+
+# 自定义配置
+catdorm:
+  default-avatar: /static/images/default_avatar.png
+  qr-code-path: /static/qrcode/

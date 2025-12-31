@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>订单管理 - 猫宿舍</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f3f4f6; }
+        
+        /* 顶部导航 - 灰色系 */
+        .header {
+            background: #4b5563;
+            color: white;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #374151;
+        }
+        .logo { font-size: 24px; font-weight: bold; }
+        .nav-menu { display: flex; gap: 20px; }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            transition: background 0.3s;
+            border: 1px solid transparent;
+        }
+        .nav-menu a:hover {
+            background: #374151;
+            border-color: #6b7280;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #d1d5db;
+        }
+        .section h2 {
+            color: #374151;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #6b7280;
+            padding-bottom: 10px;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            border: 2px solid #d1d5db;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+        }
+        .tab:hover { background: #f3f4f6; }
+        .tab.active {
+            background: #6b7280;
+            color: white;
+            border-color: #6b7280;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            margin-right: 5px;
+        }
+        .btn-primary { background: #6b7280; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-info { background: #3b82f6; color: white; }
+        .btn-secondary { background: #9ca3af; color: white; }
+        .btn:hover { opacity: 0.8; }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            border-radius: 8px;
+        }
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        .form-group textarea,
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 2px solid;
+        }
+        .status-cancelled { background: #fee2e2; color: #991b1b; border-color: #f87171; }
+        .status-pickup-pending { background: #fef3c7; color: #92400e; border-color: #fbbf24; }
+        .status-arrived { background: #dbeafe; color: #1e40af; border-color: #3b82f6; }
+        .status-completed { background: #d1fae5; color: #065f46; border-color: #10b981; }
+        .status-refunded { background: #e5e7eb; color: #374151; border-color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">管理员首页</div>
+        <div class="nav-menu">
+            <a href="/admin/dashboard">管理员首页</a>
+            <a href="/admin/orders">订单管理</a>
+            <a href="/admin/cats">在舍猫</a>
+            <a href="/admin/users">用户管理</a>
+        </div>
+        <div>
+            <span th:text="${admin.nickname}" style="color: white;">管理员</span>
+            <a href="/admin/logout" style="color: white; text-decoration: none; margin-left: 15px;">退出</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>订单管理</h2>
+            
+            <!-- 搜索栏 -->
+            <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <input type="text" id="searchInput" placeholder="输入订单号或联系人搜索..." 
+                       style="flex: 1; padding: 10px; border: 2px solid #d1d5db; font-size: 14px;">
+                <button onclick="searchOrder()" style="padding: 10px 30px; background: #6b7280; color: white; border: none; cursor: pointer;">搜索</button>
+                <button onclick="location.href='/admin/orders'" style="padding: 10px 30px; background: #9ca3af; color: white; border: none; cursor: pointer;">显示全部</button>
+            </div>
+            
+            <div class="filter-tabs">
+                <div class="tab" th:classappend="${currentStatus == null ? 'active' : ''}" onclick="location.href='/admin/orders'">
+                    全部订单
+                </div>
+                <div class="tab" th:classappend="${currentStatus == 'cancelled' ? 'active' : ''}" onclick="location.href='/admin/orders?status=cancelled'">
+                    已取消
+                </div>
+                <div class="tab" th:classappend="${currentStatus == 'pickup_pending' ? 'active' : ''}" onclick="location.href='/admin/orders?status=pickup_pending'">
+                    待接送
+                </div>
+                <div class="tab" th:classappend="${currentStatus == 'arrived' ? 'active' : ''}" onclick="location.href='/admin/orders?status=arrived'">
+                    已到店
+                </div>
+                <div class="tab" th:classappend="${currentStatus == 'completed' ? 'active' : ''}" onclick="location.href='/admin/orders?status=completed'">
+                    已完成
+                </div>
+                <div class="tab" th:classappend="${currentStatus == 'refunded' ? 'active' : ''}" onclick="location.href='/admin/orders?status=refunded'">
+                    已退款
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>订单号</th>
+                        <th>联系方式</th>
+                        <th>猫咪数量</th>
+                        <th>定金</th>
+                        <th>尾款</th>
+                        <th>寄养时长</th>
+                        <th>状态</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="order : ${orders}">
+                        <td th:text="${order.id}">1</td>
+                        <td th:text="${order.contact}">联系方式</td>
+                        <td th:text="${order.cats != null ? order.cats.size() : 0}">0</td>
+                        <td th:text="'¥' + ${order.totalDeposit}">¥0</td>
+                        <td>
+                            <span th:text="'¥' + ${order.finalPayment != null ? order.finalPayment : 0}">¥0</span>
+                            <span th:if="${order.extraCharge != null && order.extraCharge > 0}" 
+                                  style="color: #dc2626; font-size: 12px;">
+                                (+¥<span th:text="${order.extraCharge}">0</span>)
+                            </span>
+                        </td>
+                        <td th:text="${order.duration} + '天'">天</td>
+                        <td>
+                            <span class="status-badge" 
+                                  th:classappend="${order.status == 'cancelled' ? 'status-cancelled' : 
+                                                   order.status == 'pickup_pending' ? 'status-pickup-pending' : 
+                                                   order.status == 'arrived' ? 'status-arrived' :
+                                                   order.status == 'completed' ? 'status-completed' : 'status-refunded'}"
+                                  th:text="${order.status == 'cancelled' ? '已取消' : 
+                                           order.status == 'pickup_pending' ? '待接送' : 
+                                           order.status == 'arrived' ? '已到店' :
+                                           order.status == 'completed' ? '已完成' : '已退款'}">
+                                状态
+                            </span>
+                        </td>
+                        <td th:text="${#dates.format(order.createTime, 'yyyy-MM-dd HH:mm')}">时间</td>
+                        <td>
+                            <a th:href="@{/admin/order-detail(orderId=${order.id})}" class="btn btn-primary">详情</a>
+                            <button class="btn btn-success" 
+                                    th:if="${order.status == 'pickup_pending'}"
+                                    th:onclick="'pickupComplete(' + ${order.id} + ')'">接送完成</button>
+                            <button class="btn btn-info" 
+                                    th:if="${order.status == 'arrived'}"
+                                    th:onclick="'showExtraChargeModal(' + ${order.id} + ')'">增加收费</button>
+                            <button class="btn btn-warning" 
+                                    th:if="${order.status == 'arrived'}"
+                                    th:onclick="'updateStatus(' + ${order.id} + ', \'completed\')'">完成寄养</button>
+                            <button class="btn btn-danger" 
+                                    th:onclick="'deleteOrder(' + ${order.id} + ')'">删除</button>
+                        </td>
+                    </tr>
+                    <tr th:if="${orders.isEmpty()}">
+                        <td colspan="9" style="text-align: center; padding: 40px; color: #999;">
+                            暂无订单数据
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 增加收费模态框 -->
+    <div class="modal" id="extraChargeModal">
+        <div class="modal-content">
+            <h3>增加额外收费</h3>
+            <div class="form-group">
+                <label>收费理由</label>
+                <textarea id="chargeReason" rows="3" placeholder="请输入额外收费的理由..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>收费金额（元）</label>
+                <input type="number" id="chargeAmount" min="0" step="0.01" placeholder="请输入金额">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="submitExtraCharge()">确认</button>
+                <button class="btn btn-secondary" onclick="closeExtraChargeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function acceptOrder(orderId) {
+            if (confirm('确认接取该订单?')) {
+                fetch('/admin/accept-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'orderId=' + orderId
+                }).then(res => res.text()).then(data => {
+                    alert(data.split(':')[1]);
+                    location.reload();
+                });
+            }
+        }
+
+        function updateStatus(orderId, status) {
+            if (confirm('确认更新订单状态?')) {
+                fetch('/admin/update-order-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'orderId=' + orderId + '&status=' + status
+                }).then(res => res.text()).then(data => {
+                    alert(data.split(':')[1]);
+                    location.reload();
+                });
+            }
+        }
+
+        function deleteOrder(orderId) {
+            if (confirm('确认删除该订单? 此操作不可恢复!')) {
+                if (confirm('再次确认：订单将从数据库中彻底删除！')) {
+                    fetch('/admin/delete-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'orderId=' + orderId
+                    }).then(res => res.text()).then(data => {
+                        if (data.startsWith('success:')) {
+                            alert(data.split(':')[1]);
+                            location.reload();
+                        } else {
+                            alert(data.split(':')[1]);
+                        }
+                    }).catch(err => {
+                        alert('删除失败，请重试');
+                    });
+                }
+            }
+        }
+        
+        // 搜索订单
+        function searchOrder() {
+            const keyword = document.getElementById('searchInput').value.trim();
+            if (!keyword) {
+                alert('请输入搜索关键词');
+                return;
+            }
+            // 跳转到搜索页面
+            location.href = '/admin/orders?search=' + encodeURIComponent(keyword);
+        }
+        
+        // 回车搜索
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchOrder();
+            }
+        });
+        
+        // 增加收费相关功能
+        let currentOrderId = null;
+        
+        function showExtraChargeModal(orderId) {
+            currentOrderId = orderId;
+            document.getElementById('chargeReason').value = '';
+            document.getElementById('chargeAmount').value = '';
+            document.getElementById('extraChargeModal').classList.add('show');
+        }
+        
+        function closeExtraChargeModal() {
+            currentOrderId = null;
+            document.getElementById('extraChargeModal').classList.remove('show');
+        }
+        
+        function submitExtraCharge() {
+            const reason = document.getElementById('chargeReason').value.trim();
+            const amount = document.getElementById('chargeAmount').value;
+            
+            if (!reason) {
+                alert('请输入收费理由');
+                return;
+            }
+            if (!amount || amount <= 0) {
+                alert('请输入有效的收费金额');
+                return;
+            }
+            
+            fetch('/admin/add-extra-charge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'orderId=' + currentOrderId + '&reason=' + encodeURIComponent(reason) + '&amount=' + amount
+            }).then(res => res.text()).then(data => {
+                if (data.startsWith('success:')) {
+                    alert(data.split(':')[1]);
+                    closeExtraChargeModal();
+                    location.reload();
+                } else {
+                    alert(data.split(':')[1]);
+                }
+            }).catch(err => {
+                alert('操作失败，请重试');
+            });
+        }
+    </script>
+</body>
+</html>

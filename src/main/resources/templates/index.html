@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>猫宿舍 - 专业猫咪寄养服务</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f5f5f5; }
+        
+        /* 顶部导航 - 合并到hero区域 */
+        .hero {
+            background: url('/images/header-bg.jpg') center/cover;
+            padding: 100px 50px;
+            text-align: center;
+            color: white;
+            position: relative;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 登录按钮 - 绿色,右上角 */
+        .login-button {
+            position: absolute;
+            top: 30px;
+            right: 50px;
+            padding: 12px 40px;
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .login-button:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .hero h1 {
+            font-size: 48px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        .hero h1 .welcome {
+            font-size: 36px;
+        }
+        .hero p {
+            font-size: 20px;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        /* 介绍区域 - 居中 */
+        .intro {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+        .intro-section {
+            background: white;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        .intro-section h2 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2d3748;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+        .intro-section p {
+            line-height: 1.8;
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .intro-section .company-name {
+            font-weight: bold;
+        }
+        
+        /* 店铺列表 */
+        .stores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .store-card {
+            background: white;
+            padding: 30px;
+            border: 1px solid #ddd;
+            transition: border-color 0.3s;
+        }
+        .store-card:hover {
+            border-color: #4a5568;
+        }
+        .store-card h3 {
+            color: #2d3748;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .store-info {
+            color: #666;
+            line-height: 2;
+        }
+        .store-info div {
+            margin-bottom: 10px;
+        }
+        .store-info strong {
+            color: #333;
+            display: inline-block;
+            width: 80px;
+        }
+        
+        /* 服务列表 - 居中放大 */
+        .service-item {
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .service-item p {
+            margin: 0;
+            text-align: center;
+        }
+        .service-icon {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+        
+        /* 页脚 */
+        .footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 主标题 + 登录按钮 -->
+    <div class="hero">
+        <a href="/login" class="login-button">登录</a>
+        <h1><span class="welcome">欢迎来到</span>猫宿舍</h1>
+        <p>专业、安心、温馨的猫咪寄养服务</p>
+    </div>
+
+    <!-- 介绍内容 -->
+    <div class="intro">
+        <div class="intro-section">
+            <h2>关于我们</h2>
+            <p><span class="company-name">猫宿舍</span>是一家专注于猫咪寄养服务的连锁机构，我们致力于为每一只猫咪提供舒适、安全的临时家园。</p>
+            <p>我们拥有专业的护理团队，24小时实时监控，确保您的爱猫得到最好的照顾。无论是短期出差还是长期旅行，猫宿舍都是您最放心的选择。</p>
+        </div>
+
+        <div class="intro-section">
+            <h2>我们的服务</h2>
+            <div class="service-item">
+                <p>• 独立房间配置，每只猫咪都有专属空间</p>
+                <img src="/images/service1.jpg" class="service-icon" alt="服务图片">
+            </div>
+            <div class="service-item">
+                <p>• 24小时实时监控，随时查看猫咪状态</p>
+                <img src="/images/service2.jpg" class="service-icon" alt="服务图片">
+            </div>
+            <div class="service-item">
+                <p>• 专业营养配餐，根据猫咪需求定制</p>
+                <img src="/images/service3.jpg" class="service-icon" alt="服务图片">
+            </div>
+            <div class="service-item">
+                <p>• 专业接送服务，省心省力</p>
+                <img src="/images/service4.jpg" class="service-icon" alt="服务图片">
+            </div>
+            <div class="service-item">
+                <p>• 定期健康检查，确保猫咪安全</p>
+                <img src="/images/service5.jpg" class="service-icon" alt="服务图片">
+            </div>
+        </div>
+
+        <div class="intro-section">
+            <h2>我们的门店</h2>
+
+                <div class="store-card" th:if="${stores.isEmpty()}">
+                    <h3>店铺信息加载中...</h3>
+                    <p>如需咨询请联系客服</p>
+                </div>
+                <div class="store-card" th:each="store : ${stores}">
+                    <h3 th:text="${store.name}">门店名称</h3>
+                    <div class="store-info">
+                        <div><strong>地址:</strong> <span th:text="${store.address}">地址</span></div>
+                        <div><strong>电话:</strong> <span th:text="${store.phone}">电话</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="intro-section">
+            <h2>联系我们</h2>
+            <p><strong>客服热线:</strong> 400-888-6688</p>
+            <p><strong>服务时间:</strong> 每天 9:00 - 21:00</p>
+            <p><strong>紧急联系:</strong> 138-8888-8888 (24小时)</p>
+            <p><strong>电子邮箱:</strong> service@catdorm.com</p>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="footer">
+        <p>© 2025 猫宿舍 Cat Dorm | 专业猫咪寄养服务</p>
+        <p>让每一只猫咪都有温暖的家</p>
+    </div>
+</body>
+</html>

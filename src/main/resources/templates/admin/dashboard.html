@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员仪表盘 - 猫宿舍</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f3f4f6; }
+        
+        /* 顶部导航 - 灰色系 */
+        .header {
+            background: #4b5563;
+            color: white;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #374151;
+        }
+        .logo { font-size: 24px; font-weight: bold; }
+        .nav-menu {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            transition: background 0.3s;
+            border: 1px solid transparent;
+        }
+        .nav-menu a:hover {
+            background: #374151;
+            border-color: #6b7280;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border: 1px solid white;
+            transition: all 0.3s;
+        }
+        .user-info a:hover {
+            background: white;
+            color: #4b5563;
+        }
+        
+        /* 主内容 */
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .welcome-card {
+            background: white;
+            padding: 30px;
+            border: 2px solid #d1d5db;
+            margin-bottom: 30px;
+        }
+        .welcome-card h1 {
+            color: #374151;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border: 2px solid #d1d5db;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #4b5563;
+            margin-bottom: 10px;
+        }
+        .stat-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        /* 内容区块 */
+        .section {
+            background: white;
+            padding: 30px;
+            border: 2px solid #d1d5db;
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #374151;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #6b7280;
+            padding-bottom: 10px;
+        }
+        
+        /* 表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* 按钮 */
+        .btn {
+            padding: 8px 16px;
+            border: 2px solid;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 5px;
+            transition: all 0.3s;
+        }
+        .btn-success {
+            background: white;
+            color: #059669;
+            border-color: #059669;
+        }
+        .btn-success:hover {
+            background: #059669;
+            color: white;
+        }
+        .btn-danger {
+            background: white;
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <div class="logo">管理员首页</div>
+        <div class="nav-menu">
+            <a href="/admin/dashboard">管理员首页</a>
+            <a href="/admin/orders">订单管理</a>
+            <a href="/admin/cats">在舍猫</a>
+            <a href="/admin/users">用户管理</a>
+        </div>
+        <div class="user-info">
+            <span th:text="${admin.nickname}">管理员</span>
+            <a href="/admin/logout">退出</a>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="container">
+        <div class="welcome-card">
+            <h1>管理员首页</h1>
+            <p th:text="'欢迎，' + ${admin.nickname} + '！'">欢迎，管理员！</p>
+        </div>
+
+        <!-- 统计数据 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" th:text="${unpaidOrders != null ? unpaidOrders.size() : 0}">0</div>
+                <div class="stat-label">待接送订单</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${processingOrders != null ? processingOrders.size() : 0}">0</div>
+                <div class="stat-label">已到店订单</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${completedOrders != null ? completedOrders.size() : 0}">0</div>
+                <div class="stat-label">已完成订单</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" th:text="${userCount != null ? userCount : 0}">0</div>
+                <div class="stat-label">用户总数</div>
+            </div>
+        </div>
+
+        <!-- 待审核用户 -->
+        <div class="section" th:if="${!pendingUsers.isEmpty()}">
+            <h2>待审核管理员申请</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>昵称</th>
+                        <th>申请时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="user : ${pendingUsers}">
+                        <td th:text="${user.username}">username</td>
+                        <td th:text="${user.nickname}">昵称</td>
+                        <td>申请成为管理员</td>
+                        <td>
+                            <button class="btn btn-success" th:onclick="'approveUser(' + ${user.id} + ', 1)'"> 通过</button>
+                            <button class="btn btn-danger" th:onclick="'approveUser(' + ${user.id} + ', 2)'"> 拒绝</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 待接送订单 -->
+        <div class="section" th:if="${!unpaidOrders.isEmpty()}">
+            <h2>待接送订单</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>订单号</th>
+                        <th>用户</th>
+                        <th>猫咪数量</th>
+                        <th>定金</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="order : ${unpaidOrders}">
+                        <td th:text="${order.id}">1</td>
+                        <td th:text="${order.contact}">联系方式</td>
+                        <td th:text="${order.cats != null ? order.cats.size() : 0}">0</td>
+                        <td th:text="'¥' + ${order.totalDeposit}">¥0</td>
+                        <td th:text="${#dates.format(order.createTime, 'yyyy-MM-dd HH:mm')}">时间</td>
+                        <td>
+                            <button class="btn btn-success" th:onclick="'pickupComplete(' + ${order.id} + ')'">接送完成</button>
+                            <button class="btn btn-danger" th:onclick="'cancelOrder(' + ${order.id} + ')'">取消</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 已到店订单 -->
+        <div class="section" th:if="${!processingOrders.isEmpty()}">
+            <h2>已到店订单</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>订单号</th>
+                        <th>用户</th>
+                        <th>猫咪数量</th>
+                        <th>寄养时长</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="order : ${processingOrders}">
+                        <td th:text="${order.id}">1</td>
+                        <td th:text="${order.contact}">联系方式</td>
+                        <td th:text="${order.cats != null ? order.cats.size() : 0}">0</td>
+                        <td th:text="${order.duration} + '天'">天</td>
+                        <td>
+                            <button class="btn btn-success" th:onclick="'updateStatus(' + ${order.id} + ', \'completed\')'">完成寄养</button>
+                            <a th:href="@{/admin/order-detail(orderId=${order.id})}" class="btn" style="background: #6b7280; color: white;">详情</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 接送完成 - 将订单状态改为"已到店"
+        function pickupComplete(orderId) {
+            if (confirm('确认接送已完成？')) {
+                fetch('/admin/pickup-complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'orderId=' + orderId
+                }).then(res => res.text()).then(data => {
+                    alert('订单状态已更新为已到店');
+                    location.reload();
+                }).catch(err => {
+                    alert('操作失败，请重试');
+                });
+            }
+        }
+
+        // 取消订单
+        function cancelOrder(orderId) {
+            if (confirm('确认取消该订单？')) {
+                fetch('/admin/cancel-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'orderId=' + orderId
+                }).then(res => res.text()).then(data => {
+                    alert('订单已取消');
+                    location.reload();
+                }).catch(err => {
+                    alert('操作失败，请重试');
+                });
+            }
+        }
+
+        // 更新订单状态
+        function updateStatus(orderId, status) {
+            if (confirm('确认将订单标记为已完成？')) {
+                fetch('/admin/update-order-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'orderId=' + orderId + '&status=' + status
+                }).then(res => res.text()).then(data => {
+                    alert('订单状态已更新');
+                    location.reload();
+                }).catch(err => {
+                    alert('操作失败，请重试');
+                });
+            }
+        }
+        
+        // 审核用户(管理员申请)
+        function approveUser(userId, approve) {
+            const action = approve === 1 ? '通过' : '拒绝';
+            if (confirm('确认' + action + '该管理员申请？')) {
+                fetch('/admin/approve-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'userId=' + userId + '&approve=' + approve
+                }).then(res => res.text()).then(data => {
+                    if (data.startsWith('success:')) {
+                        alert(data.split(':')[1]);
+                        location.reload();
+                    } else {
+                        alert(data.split(':')[1]);
+                    }
+                }).catch(err => {
+                    alert('操作失败，请重试');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
